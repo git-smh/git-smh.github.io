@@ -151,6 +151,11 @@
     background: none;
 }
 
+#jspsych-annotation-tool-progress-container progress::-webkit-progress-bar {
+    background-color: #fafafa;
+    border-radius: 0.75rem;
+}
+
 #jspsych-annotation-tool-progress-container progress::-webkit-progress-value {
     background-color: #3ec0ed;
     border-radius: 0.75rem;
