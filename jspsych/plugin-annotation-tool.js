@@ -498,7 +498,16 @@ var jsPsychAnnotationTool = (function (jspsych) {
             }
           }
         },
-        valid_responses: "ALL_KEYS",
+        valid_responses: [
+          keyboard_shortcuts.all_items,
+          keyboard_shortcuts.guidelines,
+          keyboard_shortcuts.keyboard_shortcuts,
+          keyboard_shortcuts.rapid_mode,
+          keyboard_shortcuts.prev,
+          keyboard_shortcuts.next,
+          keyboard_shortcuts.save,
+          ...keyboard_shortcuts.labels
+        ],
         persist: true,
         allow_held_key: false
       });
