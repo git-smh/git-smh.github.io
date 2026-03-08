@@ -455,12 +455,12 @@ var jsPsychAnnotationTool = (function (jspsych) {
       }
       this.jsPsych.pluginAPI.getKeyboardResponse({
         callback_function: (info2) => {
-          if (info2.key === "Escape" && popup_container.style.display !== "none") {
-            popup_container.click();
-            return;
-          }
           const element = document.activeElement;
           if (element && (element.tagName === "INPUT" || element.tagName === "TEXTAREA" || element.isContentEditable)) {
+            return;
+          }
+          if (info2.key === "Escape" && popup_container.style.display !== "none") {
+            popup_container.click();
             return;
           }
           if (popup_container.style.display !== "none") {
