@@ -87,8 +87,14 @@
     color: white;
 }
 
+
+
 #jspsych-annotation-tool-all-items button:hover {
     background-color: #eeeeee;
+}
+
+#jspsych-annotation-tool-all-items button.is-selected:hover {
+    color: #3ec0ed;
 }
 
 /* popup */
@@ -106,7 +112,7 @@
 
 #jspsych-annotation-tool-popup-box {
     background: white;
-    padding: 1.5rem;
+    padding: 1rem;
     width: min(80%, 700px);
     max-height: 80vh;
     overflow-y: auto;
@@ -116,6 +122,7 @@
 #jspsych-annotation-tool-popup-title {
     font-weight: bold;
     text-align: left;
+    margin-bottom: 0.25rem;
 }
 
 #jspsych-annotation-tool-popup-text {
@@ -123,6 +130,77 @@
     white-space: pre-wrap;
     text-align: left;
 }
+
+#jspsych-annotation-tool-popup-text p {
+    margin: 0; /* small top/bottom margin */
+}
+
+.shortcut-capture,
+.shortcut-capture-label {
+    width: 2.2rem;
+    height: 2.2rem;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+    border: 1px solid #dddddd;
+    border-radius: 6px;
+
+    font-family: monospace;
+    font-weight: bold;
+
+    background: #f2f2f2;
+    cursor: pointer;
+}
+
+.shortcut-capture span,
+.shortcut-capture-label span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+
+
+
+.shortcut-capture:hover, .shortcut-capture-label:hover {
+    background: #e8e8e8;
+}
+
+.shortcut-table {
+    border-collapse: collapse;
+    margin: 0;
+
+}
+
+
+
+
+.shortcut-table td,
+.shortcut-table th {
+    padding: 0 20px;
+    line-height: 1;
+}
+
+.shortcut-table th {
+    font-weight: 600;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+
+#save-shortcuts-button {
+    border-radius: 4px;
+    padding: 0.3rem;
+    border: 1px solid #dddddd;
+    background-color: #fafafa;
+}
+
+
+
 
 /* progress */
 #jspsych-annotation-tool-progress-container {
@@ -232,7 +310,7 @@
 #jspsych-annotation-tool-item {
     white-space: pre-wrap;
     text-align: left;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
 }
 
 #jspsych-annotation-tool-metadata {
