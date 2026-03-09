@@ -7,24 +7,41 @@ var jsPsychAnnotationTool = (function (jspsych) {
     name: "plugin-annotation-tool",
     version,
     parameters: {
-      // user can use provided css as is, modify it, or use own css
+      // can use provided css as is, modify it, or use own css
       stylesheet: {
         type: jspsych.ParameterType.STRING,
         default: "jspsych/annotation-tool.css"
       },
+      // dataset to annotate, as JSON array
       dataset: {
         type: jspsych.ParameterType.OBJECT,
-        array: true
+        array: true,
+        // exemplary dataset
+        default: [
+          { "id": 0, text: "text 0" },
+          { "id": 1, text: "text 1", "label": 0 },
+          { "id": 2, text: "text 2" }
+        ]
       },
+      // labels to label data with
       labels: {
         type: jspsych.ParameterType.STRING,
         array: true,
-        default: void 0
+        // exemplary labels
+        default: ["label0", "label1"]
       },
+      // if data can be labelled with multiple labels
+      multi_labels: {
+        type: jspsych.ParameterType.BOOL,
+        default: false
+      },
+      // annotation guidelines, as regular text or styled with html
       guidelines: {
         type: jspsych.ParameterType.HTML_STRING,
-        default: ""
+        // exemplary guidelines
+        default: "<ol>\n  <li>guideline 0</li>\n  <li>guideline 1</li>\n  <li>guideline 2</li>\n</ol>"
       },
+      // keyboard shortcuts
       keyboard_shortcuts: {
         type: jspsych.ParameterType.OBJECT,
         default: {
@@ -38,23 +55,30 @@ var jsPsychAnnotationTool = (function (jspsych) {
           labels: ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
         }
       },
+      // github account username which owns the repository
+      // in which the annotation tool is hosted
       owner: {
         type: jspsych.ParameterType.STRING,
         default: void 0
       },
+      // repository name
       repo: {
         type: jspsych.ParameterType.STRING,
         default: void 0
       },
+      // github actions file name
       workflow: {
         type: jspsych.ParameterType.STRING,
         default: "save-annotations.yml"
       }
     },
+    // data saved:
     data: {
+      // annotator name
       annotator: {
         type: jspsych.ParameterType.STRING
       },
+      // labelled dataset
       labelled_dataset: {
         type: jspsych.ParameterType.OBJECT,
         array: true
@@ -137,7 +161,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
         });
       }
       const all_items_button = document.createElement("button");
-      const all_items_icon = document.createElement("icon");
+      const all_items_icon = document.createElement("i");
       all_items_icon.className = "fa fa-bars fa-fw fa-lg";
       all_items_button.appendChild(all_items_icon);
       all_items_button.addEventListener("click", () => {
@@ -173,7 +197,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
         popup_container.style.display = "flex";
       }
       const guidelines_button = document.createElement("button");
-      const guidelines_icon = document.createElement("icon");
+      const guidelines_icon = document.createElement("i");
       guidelines_icon.className = "fa fa-book fa-fw fa-lg";
       guidelines_button.appendChild(guidelines_icon);
       guidelines_button.addEventListener("click", () => {
@@ -269,7 +293,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
         });
       }
       const keyboard_shortcuts_button = document.createElement("button");
-      const keyboard_shortcuts_icon = document.createElement("icon");
+      const keyboard_shortcuts_icon = document.createElement("i");
       keyboard_shortcuts_icon.className = "fa fa-keyboard-o fa-fw fa-lg";
       keyboard_shortcuts_button.appendChild(keyboard_shortcuts_icon);
       keyboard_shortcuts_button.addEventListener("click", () => {
@@ -295,16 +319,20 @@ var jsPsychAnnotationTool = (function (jspsych) {
       let rapid_mode = false;
       const rapid_mode_button = document.createElement("button");
       rapid_mode_button.className = "rapid-mode-button";
-      const rapid_mode_icon = document.createElement("icon");
+      const rapid_mode_icon = document.createElement("i");
       rapid_mode_icon.className = "fa fa-bolt fa-fw fa-lg";
       rapid_mode_button.appendChild(rapid_mode_icon);
+      if (trial.multi_labels) {
+        rapid_mode_button.disabled = true;
+        rapid_mode_button.title = "Rapid mode disabled in multi-label mode";
+      }
       rapid_mode_button.addEventListener("click", () => {
         rapid_mode = !rapid_mode;
         rapid_mode_button.classList.toggle("active", rapid_mode);
       });
       toolbar_right.appendChild(rapid_mode_button);
       const prev_button = document.createElement("button");
-      const prev_icon = document.createElement("icon");
+      const prev_icon = document.createElement("i");
       prev_icon.className = "fa fa-chevron-left fa-fw fa-lg";
       prev_button.appendChild(prev_icon);
       prev_button.disabled = cur_index === 0;
@@ -316,7 +344,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
       });
       toolbar_right.appendChild(prev_button);
       const next_button = document.createElement("button");
-      const next_icon = document.createElement("icon");
+      const next_icon = document.createElement("i");
       next_icon.className = "fa fa-chevron-right fa-fw fa-lg";
       next_button.appendChild(next_icon);
       next_button.addEventListener("click", () => {
@@ -327,16 +355,17 @@ var jsPsychAnnotationTool = (function (jspsych) {
       });
       toolbar_right.appendChild(next_button);
       const save_button = document.createElement("button");
-      const save_icon = document.createElement("icon");
+      const save_icon = document.createElement("i");
       save_icon.className = "fa fa-save fa-fw fa-lg";
       save_button.appendChild(save_icon);
       save_button.addEventListener("click", () => {
         show_popup(
           "Save to GitHub",
           `<label for="annotator-name">Name:</label>
-<input id="annotator-name" name="annotator-name">
+<input id="annotator-name" name="annotator-name" value="${localStorage.getItem("annotator_name") ?? ""}">
 <label for="github-token">Token:</label>
-<input type="password" id="github-token" name="github-token">
+<input type="password" id="github-token" name="github-token" value="${localStorage.getItem("github_token") ?? ""}">
+<p>Annotator name and token are saved locally.</p>
 <button id="save-and-continue">save and continue</button>
 <button id="save-and-end">save and end</button>`
         );
@@ -345,6 +374,8 @@ var jsPsychAnnotationTool = (function (jspsych) {
           const name_input = document.getElementById("annotator-name");
           const token = token_input?.value.trim();
           let annotator = name_input?.value.trim();
+          localStorage.setItem("annotator_name", annotator);
+          localStorage.setItem("github_token", token);
           if (!token) {
             alert("Please enter a GitHub token.");
             return;
@@ -381,10 +412,12 @@ var jsPsychAnnotationTool = (function (jspsych) {
               }
             );
             if (res.ok) {
-              alert("Annotations successfully saved to GitHub.");
               if (end_after) {
+                alert("Annotations successfully saved to GitHub. Quitting. Reload to reopen.");
                 jsPsych.pluginAPI.cancelAllKeyboardResponses();
                 jsPsych.finishTrial(trial_data);
+              } else {
+                alert("Annotations successfully saved to GitHub. You may continue annotating.");
               }
             } else {
               const text = await res.text();
@@ -392,7 +425,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
             }
           } catch (err) {
             console.error(err);
-            alert("Failed to trigger GitHub workflow. Check console for details.");
+            alert("Failed to save annotations to GitHub. Check console for details.");
           }
         }
         const save_and_continue = document.getElementById("save-and-continue");
@@ -412,7 +445,11 @@ var jsPsychAnnotationTool = (function (jspsych) {
       function update_label_buttons() {
         const current = labelled_dataset[cur_index].label;
         label_buttons.forEach((btn, i) => {
-          btn.classList.toggle("is-selected", i === current);
+          if (Array.isArray(current)) {
+            btn.classList.toggle("is-selected", current.includes(i));
+          } else {
+            btn.classList.toggle("is-selected", i === current);
+          }
         });
       }
       trial.labels.forEach((label, label_index) => {
@@ -420,10 +457,27 @@ var jsPsychAnnotationTool = (function (jspsych) {
         label_button.className = "jspsych-annotation-tool-label-button";
         label_button.textContent = label;
         label_button.addEventListener("click", () => {
-          if (labelled_dataset[cur_index].label === label_index) {
-            delete labelled_dataset[cur_index].label;
+          const item = labelled_dataset[cur_index];
+          if (trial.multi_labels) {
+            if (!Array.isArray(item.label)) {
+              item.label = [];
+            }
+            const labels = item.label;
+            const pos = labels.indexOf(label_index);
+            if (pos === -1) {
+              labels.push(label_index);
+            } else {
+              labels.splice(pos, 1);
+            }
+            if (labels.length === 0) {
+              delete item.label;
+            }
           } else {
-            labelled_dataset[cur_index].label = label_index;
+            if (item.label === label_index) {
+              delete item.label;
+            } else {
+              item.label = label_index;
+            }
           }
           update_text();
           update_label_buttons();
@@ -490,7 +544,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
             const label_index = keyboard_shortcuts.labels.indexOf(info2.key);
             if (label_index !== -1 && label_index < label_buttons.length) {
               label_buttons[label_index].click();
-              if (rapid_mode && cur_index < labelled_dataset.length - 1) {
+              if (!trial.multi_labels && rapid_mode && cur_index < labelled_dataset.length - 1) {
                 setTimeout(() => {
                   cur_index++;
                   update_text();
@@ -505,14 +559,14 @@ var jsPsychAnnotationTool = (function (jspsych) {
       }
       startKeyboardShortcuts();
       display_element.addEventListener("focusin", (e) => {
-        const el = e.target;
-        if (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable) {
+        const elem = e.target;
+        if (elem.tagName === "INPUT" || elem.tagName === "TEXTAREA" || elem.isContentEditable) {
           this.jsPsych.pluginAPI.cancelKeyboardResponse(keyboardListener);
         }
       });
       display_element.addEventListener("focusout", (e) => {
-        const el = e.target;
-        if (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable) {
+        const elem = e.target;
+        if (elem.tagName === "INPUT" || elem.tagName === "TEXTAREA" || elem.isContentEditable) {
           startKeyboardShortcuts();
         }
       });
