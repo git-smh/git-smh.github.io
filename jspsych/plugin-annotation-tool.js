@@ -380,17 +380,15 @@ var jsPsychAnnotationTool = (function (jspsych) {
                 })
               }
             );
-            if (!res.ok) {
+            if (res.ok) {
+              alert("Annotations successfully saved to GitHub.");
+              if (end_after) {
+                jsPsych.pluginAPI.cancelAllKeyboardResponses();
+                jsPsych.finishTrial(trial_data);
+              }
+            } else {
               const text = await res.text();
               throw new Error(text);
-            }
-            alert("Annotations successfully saved to GitHub.");
-            if (end_after) {
-              this.jsPsych.pluginAPI.cancelAllKeyboardResponses();
-              this.jsPsych.finishTrial({
-                saved_to_github: true,
-                annotator
-              });
             }
           } catch (err) {
             console.error(err);
