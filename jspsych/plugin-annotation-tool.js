@@ -557,7 +557,10 @@ var jsPsychAnnotationTool = (function (jspsych) {
               }
             }
           },
-          valid_responses: "ALL_KEYS",
+          valid_responses: [
+            ...Object.entries(keyboard_shortcuts).filter(([k]) => k !== "labels").map(([, v]) => v),
+            ...keyboard_shortcuts.labels
+          ],
           persist: true,
           allow_held_key: false
         });
