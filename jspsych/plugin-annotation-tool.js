@@ -10,7 +10,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
       // can use provided css as is, modify it, or use own css
       stylesheet: {
         type: jspsych.ParameterType.STRING,
-        default: "jspsych/annotation-tool.css"
+        default: "annotation-tool.css"
       },
       // dataset to annotate, as JSON array
       dataset: {
@@ -101,7 +101,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
       document.head.appendChild(fa_link);
       const css_link = document.createElement("link");
       css_link.rel = "stylesheet";
-      css_link.href = trial.stylesheet;
+      css_link.href = "jspsych/" + trial.stylesheet.trim();
       document.head.appendChild(css_link);
       const labelled_dataset = structuredClone(trial.dataset);
       let cur_index = 0;
@@ -255,7 +255,11 @@ var jsPsychAnnotationTool = (function (jspsych) {
             const listener = (e) => {
               e.preventDefault();
               const key = e.key.toLowerCase();
-              if (shortcut_already_used(key)) return;
+              if (shortcut_already_used(key)) {
+                alert(`Key "${key}" is already assigned to another shortcut.`);
+                btn.querySelector("span").textContent = keyboard_shortcuts[btn.dataset.action];
+                return;
+              }
               const action = btn.dataset.action;
               keyboard_shortcuts[action] = key;
               btn.querySelector("span").textContent = key;
@@ -271,7 +275,12 @@ var jsPsychAnnotationTool = (function (jspsych) {
             const listener = (e) => {
               e.preventDefault();
               const key = e.key.toLowerCase();
-              if (shortcut_already_used(key)) return;
+              if (shortcut_already_used(key)) {
+                alert(`Key "${key}" is already assigned to another shortcut.`);
+                const index2 = Number(btn.dataset.index);
+                btn.querySelector("span").textContent = keyboard_shortcuts.labels[index2];
+                return;
+              }
               const index = Number(btn.dataset.index);
               keyboard_shortcuts.labels[index] = key;
               btn.querySelector("span").textContent = key;
@@ -528,10 +537,18 @@ var jsPsychAnnotationTool = (function (jspsych) {
                 all_items_button.click();
                 break;
               case keyboard_shortcuts.guidelines:
-                guidelines_button.click();
+                if (popup_container.style.display !== "none") {
+                  popup_container.click();
+                } else {
+                  guidelines_button.click();
+                }
                 break;
               case keyboard_shortcuts.keyboard_shortcuts:
-                keyboard_shortcuts_button.click();
+                if (popup_container.style.display !== "none") {
+                  popup_container.click();
+                } else {
+                  keyboard_shortcuts_button.click();
+                }
                 break;
               case keyboard_shortcuts.rapid_mode:
                 rapid_mode_button.click();
@@ -559,7 +576,8 @@ var jsPsychAnnotationTool = (function (jspsych) {
           },
           valid_responses: [
             ...Object.entries(keyboard_shortcuts).filter(([k]) => k !== "labels").map(([, v]) => v),
-            ...keyboard_shortcuts.labels
+            ...keyboard_shortcuts.labels,
+            "Escape"
           ],
           persist: true,
           allow_held_key: false
