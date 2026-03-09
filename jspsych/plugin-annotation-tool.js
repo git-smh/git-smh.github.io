@@ -10,7 +10,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
       // can use provided css as is, modify it, or use own css
       stylesheet: {
         type: jspsych.ParameterType.STRING,
-        default: "jspsych/annotation-tool.css"
+        default: "../src/annotation-tool.css"
       },
       // dataset to annotate, as JSON array
       dataset: {
@@ -388,6 +388,11 @@ var jsPsychAnnotationTool = (function (jspsych) {
           const owner = trial.owner.trim();
           const repo = trial.repo.trim();
           const workflow = trial.workflow.trim();
+          labelled_dataset.forEach((item) => {
+            if (Array.isArray(item.label)) {
+              item.label = item.label.map(Number).sort((a, b) => a - b);
+            }
+          });
           const trial_data = {
             annotator,
             labelled_dataset
