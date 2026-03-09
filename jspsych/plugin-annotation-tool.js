@@ -453,43 +453,66 @@ var jsPsychAnnotationTool = (function (jspsych) {
         update_progress();
         update_all_items_highlight();
       }
-      document.addEventListener("keydown", (e) => {
-        const element = document.activeElement;
-        if (element && (element.tagName === "INPUT" || element.tagName === "TEXTAREA" || element.isContentEditable)) {
-          return;
+      function startKeyboardShortcuts() {
+        this.jsPsych.pluginAPI.getKeyboardResponse({
+          callback_function: (info2) => {
+            const element = document.activeElement;
+            if (element && (element.tagName === "INPUT" || element.tagName === "TEXTAREA" || element.isContentEditable) || popup_container.style.display !== "none") {
+              return;
+            }
+            if (info2.key === "Escape" && popup_container.style.display !== "none") {
+              popup_container.click();
+              return;
+            }
+            switch (info2.key) {
+              case keyboard_shortcuts.all_items:
+                all_items_button.click();
+                break;
+              case keyboard_shortcuts.guidelines:
+                guidelines_button.click();
+                break;
+              case keyboard_shortcuts.keyboard_shortcuts:
+                keyboard_shortcuts_button.click();
+                break;
+              case keyboard_shortcuts.rapid_mode:
+                rapid_mode_button.click();
+                break;
+              case keyboard_shortcuts.prev:
+                prev_button.click();
+                break;
+              case keyboard_shortcuts.next:
+                next_button.click();
+                break;
+              case keyboard_shortcuts.save:
+                save_button.click();
+                break;
+            }
+            const label_index = keyboard_shortcuts.labels.indexOf(info2.key);
+            if (label_index !== -1 && label_index < label_buttons.length) {
+              label_buttons[label_index].click();
+              if (rapid_mode && cur_index < labelled_dataset.length - 1) {
+                setTimeout(() => {
+                  cur_index++;
+                  update_text();
+                }, 50);
+              }
+            }
+          },
+          valid_responses: "ALL_KEYS",
+          persist: true,
+          allow_held_key: false
+        });
+      }
+      display_element.addEventListener("focusin", (e) => {
+        const el = e.target;
+        if (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable) {
+          this.jsPsych.pluginAPI.cancelAllKeyboardResponses();
         }
-        switch (e.key) {
-          case keyboard_shortcuts.all_items:
-            all_items_button.click();
-            break;
-          case keyboard_shortcuts.guidelines:
-            guidelines_button.click();
-            break;
-          case keyboard_shortcuts.keyboard_shortcuts:
-            keyboard_shortcuts_button.click();
-            break;
-          case keyboard_shortcuts.rapid_mode:
-            rapid_mode_button.click();
-            break;
-          case keyboard_shortcuts.prev:
-            prev_button.click();
-            break;
-          case keyboard_shortcuts.next:
-            next_button.click();
-            break;
-          case keyboard_shortcuts.save:
-            save_button.click();
-            break;
-        }
-        const label_index = keyboard_shortcuts.labels.indexOf(e.key);
-        if (label_index !== -1 && label_index < label_buttons.length) {
-          label_buttons[label_index].click();
-          if (rapid_mode && cur_index < labelled_dataset.length - 1) {
-            setTimeout(() => {
-              cur_index++;
-              update_text();
-            }, 50);
-          }
+      });
+      display_element.addEventListener("focusout", (e) => {
+        const el = e.target;
+        if (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable) {
+          startKeyboardShortcuts();
         }
       });
       update_text();
