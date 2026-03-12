@@ -248,6 +248,7 @@
     width: 100%;
     height: 100%;
     appearance: none;
+    -webkit-appearance: none;
     border: none;
     background: none;
     accent-color: #3ec0ed;
@@ -258,9 +259,14 @@
     border-radius: 0.75rem;
 }
 
-#jspsych-annotation-tool-progress-container progress::-webkit-progress-value,
+#jspsych-annotation-tool-progress-container progress::-webkit-progress-value {
+    background: #3ec0ed;
+    border-radius: 0.75rem;
+}
+
 #jspsych-annotation-tool-progress-container progress::-moz-progress-bar {
     background: #3ec0ed;
+    border-radius: 0.75rem;
 }
 
 #jspsych-annotation-tool-progress-container span {
