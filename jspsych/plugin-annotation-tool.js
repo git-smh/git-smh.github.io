@@ -146,8 +146,17 @@ var jsPsychAnnotationTool = (function (jspsych) {
       const repo = repoRaw ? repoRaw.charAt(0).toUpperCase() + repoRaw.slice(1) : "";
       const LOCAL_STORAGE_PREFIX = `${owner}${repo}Annotation`;
       const savedAnnotatedDataset = localStorage.getItem(LOCAL_STORAGE_PREFIX);
-      const annotatedDataset = savedAnnotatedDataset ? JSON.parse(savedAnnotatedDataset) : structuredClone(trial.dataset);
-      let curIdx = Number(localStorage.getItem(LOCAL_STORAGE_PREFIX + "Index") ?? 0);
+      let annotatedDataset;
+      if (savedAnnotatedDataset) {
+        const parsedSaved = JSON.parse(savedAnnotatedDataset);
+        annotatedDataset = parsedSaved.length === trial.dataset.length ? parsedSaved : structuredClone(trial.dataset);
+      } else {
+        annotatedDataset = structuredClone(trial.dataset);
+      }
+      let curIdx = Math.min(
+        Number(localStorage.getItem(LOCAL_STORAGE_PREFIX + "Index") ?? 0),
+        annotatedDataset.length - 1
+      );
       function makeMetadataString(item, itemIdx, numItems) {
         let metadata = `position: ${itemIdx + 1} of ${numItems} | id: ${item.id}`;
         Object.entries(item).forEach(([key, value]) => {
@@ -163,15 +172,23 @@ var jsPsychAnnotationTool = (function (jspsych) {
       const dialogTitle = document.createElement("div");
       dialogTitle.id = "jspsych-annotation-tool-dialog-title";
       dialog.appendChild(dialogTitle);
+      const dialogTitleText = document.createElement("span");
+      dialogTitle.appendChild(dialogTitleText);
+      const closeButton = document.createElement("button");
+      closeButton.className = "jspsych-annotation-tool-dialog-close";
+      const closeIcon = document.createElement("i");
+      closeIcon.className = "fa fa-times fa-fw";
+      closeButton.appendChild(closeIcon);
+      closeButton.addEventListener("click", () => {
+        dialog.close();
+      });
+      dialogTitle.appendChild(closeButton);
       const dialogBody = document.createElement("div");
       dialogBody.id = "jspsych-annotation-tool-dialog-body";
       dialog.appendChild(dialogBody);
       function showDialog(title, text) {
-        dialogTitle.textContent = title;
-        dialogBody.innerHTML = `
-      ${text}
-      <p class="jspsych-annotation-tool-dialog-note">Press Escape to close.</p>
-      `;
+        dialogTitleText.textContent = title;
+        dialogBody.innerHTML = text;
         if (!dialog.open) {
           dialog.showModal();
           dialog.setAttribute("tabindex", "-1");
@@ -215,6 +232,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
       const allItemsButton = document.createElement("button");
       const allItemsIcon = document.createElement("i");
       allItemsIcon.className = "fa fa-bars fa-fw";
+      allItemsButton.appendChild(allItemsIcon);
       allItemsButton.addEventListener("click", () => {
         if (allItemsContainer.style.display === "none") {
           allItemsContainer.style.display = "block";
@@ -222,7 +240,6 @@ var jsPsychAnnotationTool = (function (jspsych) {
           allItemsContainer.style.display = "none";
         }
       });
-      allItemsButton.appendChild(allItemsIcon);
       toolbarL.appendChild(allItemsButton);
       const guidelinesButton = document.createElement("button");
       const guidelinesIcon = document.createElement("i");
@@ -276,7 +293,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
       </tr>`;
         });
         table += `</table>
-    <p>Click on a shortcut and press a new key. Changes are saved automatically. Shortcuts are stored locally.</p>`;
+    <p>Click on a shortcut and press a new key. Changes are automatically saved locally.</p>`;
         return table;
       }
       function keyUsed(key) {
@@ -286,10 +303,10 @@ var jsPsychAnnotationTool = (function (jspsych) {
         return [...actionKeys, ...labelKeys].includes(key);
       }
       function captureNewShortcut() {
-        const buttons = document.querySelectorAll(
+        const shortcutKeyButtons = dialog.querySelectorAll(
           ".shortcut-capture, .shortcut-capture-label"
         );
-        buttons.forEach((button) => {
+        shortcutKeyButtons.forEach((button) => {
           button.addEventListener("click", () => {
             const span = button.querySelector("span");
             const oldKey = span.textContent ?? "";
@@ -458,6 +475,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
          <input type="password" id="token" name="token" value="${localStorage.getItem(LOCAL_STORAGE_PREFIX + "Token") ?? ""}">
          </div>
          </div>
+         <p>Name may only contain the letters A-Z, numbers, spaces, and hyphens (-). It must not start or end with a hyphen.</p>
          <p>Name and token are saved locally.</p>
          <div class="save-buttons">
          <button id="save-and-continue">save and continue</button>
@@ -465,79 +483,93 @@ var jsPsychAnnotationTool = (function (jspsych) {
          </div>`
         );
         const saveAndContinue = document.getElementById("save-and-continue");
-        const saveAndEnd = document.getElementById("save-and-end");
-        async function saveToGitHub(endAfter) {
-          saveAndContinue.disabled = true;
-          saveAndEnd.disabled = true;
-          const tokenInput = document.getElementById("token");
-          const nameInput = document.getElementById("annotatorName");
-          const token = tokenInput?.value.trim();
-          let annotator = nameInput?.value.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-");
-          if (!token) {
-            return alert("Please enter a GitHub token.");
-          }
-          if (!annotator) {
-            return alert("Please enter an annotator name.");
-          }
-          localStorage.setItem(LOCAL_STORAGE_PREFIX + "AnnotatorName", annotator);
-          localStorage.setItem(LOCAL_STORAGE_PREFIX + "Token", token);
-          annotatedDataset.forEach((item) => {
-            if (Array.isArray(item.label)) {
-              item.label = item.label.map(Number).sort((a, b) => a - b);
-            }
-          });
-          const trialData = {
-            annotator,
-            annotated_dataset: annotatedDataset
-          };
-          try {
-            const response = await fetch(
-              `https://api.github.com/repos/${(trial.owner ?? "").trim()}/${(trial.repo ?? "").trim()}/actions/workflows/${trial.workflow.trim()}/dispatches`,
-              {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  Accept: "application/vnd.github+json",
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                  ref: "main",
-                  inputs: {
-                    annotator,
-                    dataset: JSON.stringify(trialData, null, 2)
-                  }
-                })
-              }
-            );
-            if (!response.ok) {
-              const errorText = await response.text();
-              throw new Error(errorText);
-            }
-            saveAndContinue.disabled = false;
-            saveAndEnd.disabled = false;
-            const successMsg = endAfter ? "Annotations successfully saved to GitHub. Quitting. Reload to reopen." : "Annotations successfully saved to GitHub. You may continue annotating.";
-            alert(successMsg);
-            if (endAfter) {
-              jsPsych.pluginAPI.cancelAllKeyboardResponses();
-              jsPsych.finishTrial(trialData);
-            }
-          } catch (error) {
-            console.error(error);
-            saveAndContinue.disabled = false;
-            saveAndEnd.disabled = false;
-            alert(
-              "Failed to save annotations to GitHub. Check your input. Check console for details."
-            );
-          }
-        }
         saveAndContinue.addEventListener("click", async () => {
           await saveToGitHub(false);
         });
+        const saveAndEnd = document.getElementById("save-and-end");
         saveAndEnd.addEventListener("click", async () => {
           await saveToGitHub(true);
         });
       });
       toolbarR.appendChild(saveButton);
+      async function saveToGitHub(endAfter) {
+        const saveAndContinue = document.getElementById("save-and-continue");
+        const saveAndEnd = document.getElementById("save-and-end");
+        saveAndContinue.disabled = true;
+        saveAndEnd.disabled = true;
+        const tokenInput = document.getElementById("token");
+        const nameInput = document.getElementById("annotatorName");
+        const token = tokenInput?.value.trim();
+        const annotatorRaw = nameInput?.value.trim();
+        if (!annotatorRaw) {
+          saveAndContinue.disabled = false;
+          saveAndEnd.disabled = false;
+          return alert("Please enter an annotator name.");
+        }
+        if (!/^[A-Za-z0-9 -]+$/.test(annotatorRaw) || annotatorRaw.startsWith("-") || annotatorRaw.endsWith("-")) {
+          saveAndContinue.disabled = false;
+          saveAndEnd.disabled = false;
+          return alert(
+            "Name may only contain the letters A-Z, numbers, spaces, and hyphens (-).It must not start or end with a hyphen."
+          );
+        }
+        const annotatorBranch = annotatorRaw.toLowerCase().replace(/\s+/g, "-").replace(/-+/g, "-").replace(/^-+|-+$/g, "");
+        if (!token) {
+          saveAndContinue.disabled = false;
+          saveAndEnd.disabled = false;
+          return alert("Please enter a GitHub token.");
+        }
+        localStorage.setItem(LOCAL_STORAGE_PREFIX + "AnnotatorName", annotatorRaw);
+        localStorage.setItem(LOCAL_STORAGE_PREFIX + "Token", token);
+        annotatedDataset.forEach((item) => {
+          if (Array.isArray(item.label)) {
+            item.label = item.label.map(Number).sort((a, b) => a - b);
+          }
+        });
+        const trialData = {
+          annotator: annotatorRaw,
+          annotated_dataset: annotatedDataset
+        };
+        try {
+          const response = await fetch(
+            `https://api.github.com/repos/${(trial.owner ?? "").trim()}/${(trial.repo ?? "").trim()}/actions/workflows/${trial.workflow.trim()}/dispatches`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/vnd.github+json",
+                "Content-Type": "application/json"
+              },
+              body: JSON.stringify({
+                ref: "main",
+                inputs: {
+                  annotator: annotatorBranch,
+                  dataset: JSON.stringify(trialData, null, 2)
+                }
+              })
+            }
+          );
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText);
+          }
+          saveAndContinue.disabled = false;
+          saveAndEnd.disabled = false;
+          const successMsg = endAfter ? "Annotations successfully saved to GitHub. Quitting. Reload to reopen." : "Annotations successfully saved to GitHub. You may continue annotating.";
+          alert(successMsg);
+          if (endAfter) {
+            jsPsych.pluginAPI.cancelAllKeyboardResponses();
+            jsPsych.finishTrial(trialData);
+          }
+        } catch (error) {
+          console.error(error);
+          saveAndContinue.disabled = false;
+          saveAndEnd.disabled = false;
+          alert(
+            "Failed to save annotations to GitHub. Check your input. Check console for details."
+          );
+        }
+      }
       const labelsContainer = document.createElement("div");
       labelsContainer.id = "jspsych-annotation-tool-labels-container";
       display_element.appendChild(labelsContainer);
