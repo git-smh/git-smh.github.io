@@ -1,10 +1,10 @@
-var jsPsychAnnotationTool = (function (jspsych) {
+var jsPsychCrab = (function (jspsych) {
   'use strict';
 
   var version = "0.0.1";
 
   const info = {
-    name: "plugin-annotation-tool",
+    name: "plugin-crab",
     version,
     parameters: {
       /**
@@ -14,7 +14,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
        */
       stylesheet: {
         type: jspsych.ParameterType.STRING,
-        default: "jspsych/annotation-tool.css"
+        default: "jspsych/crab.css"
       },
       /**
        * dataset to annotate, as JSON array
@@ -125,7 +125,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
        citations will be generated here based on the information in the CITATION.cff file. */
     citations: "__CITATIONS__"
   };
-  class AnnotationToolPlugin {
+  class CrabPlugin {
     constructor(jsPsych) {
       this.jsPsych = jsPsych;
     }
@@ -167,15 +167,15 @@ var jsPsychAnnotationTool = (function (jspsych) {
         return metadata;
       }
       const dialog = document.createElement("dialog");
-      dialog.id = "jspsych-annotation-tool-dialog";
+      dialog.id = "crab-dialog";
       display_element.appendChild(dialog);
       const dialogTitle = document.createElement("div");
-      dialogTitle.id = "jspsych-annotation-tool-dialog-title";
+      dialogTitle.id = "crab-dialog-title";
       dialog.appendChild(dialogTitle);
       const dialogTitleText = document.createElement("span");
       dialogTitle.appendChild(dialogTitleText);
       const closeButton = document.createElement("button");
-      closeButton.className = "jspsych-annotation-tool-dialog-close";
+      closeButton.className = "crab-dialog-close";
       const closeIcon = document.createElement("i");
       closeIcon.className = "fa fa-times fa-fw";
       closeButton.appendChild(closeIcon);
@@ -184,7 +184,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
       });
       dialogTitle.appendChild(closeButton);
       const dialogBody = document.createElement("div");
-      dialogBody.id = "jspsych-annotation-tool-dialog-body";
+      dialogBody.id = "crab-dialog-body";
       dialog.appendChild(dialogBody);
       function showDialog(title, text) {
         dialogTitleText.textContent = title;
@@ -199,16 +199,16 @@ var jsPsychAnnotationTool = (function (jspsych) {
         }
       }
       const toolbar = document.createElement("div");
-      toolbar.id = "jspsych-annotation-tool-toolbar";
+      toolbar.id = "crab-toolbar";
       display_element.appendChild(toolbar);
       const toolbarL = document.createElement("div");
-      toolbarL.classList.add("toolbar-section", "left");
+      toolbarL.classList.add("crab-toolbar-section", "left");
       toolbar.appendChild(toolbarL);
       const toolbarR = document.createElement("div");
-      toolbarR.classList.add("toolbar-section", "right");
+      toolbarR.classList.add("crab-toolbar-section", "right");
       toolbar.appendChild(toolbarR);
       const allItemsContainer = document.createElement("div");
-      allItemsContainer.id = "jspsych-annotation-tool-all-items";
+      allItemsContainer.id = "crab-all-items";
       allItemsContainer.style.display = "none";
       display_element.appendChild(allItemsContainer);
       const itemButtons = [];
@@ -216,16 +216,16 @@ var jsPsychAnnotationTool = (function (jspsych) {
         const itemButton = document.createElement("button");
         itemButton.addEventListener("click", () => {
           curIdx = itemIdx;
-          updateUi();
+          updateGui();
         });
         itemButtons.push(itemButton);
         allItemsContainer.appendChild(itemButton);
         const itemText2 = document.createElement("span");
-        itemText2.classList.add("jspsych-annotation-tool-item-from-all-text");
+        itemText2.classList.add("crab-item-from-all-items-text");
         itemText2.textContent = item.text;
         itemButton.appendChild(itemText2);
         const itemMetadata2 = document.createElement("span");
-        itemMetadata2.classList.add("jspsych-annotation-tool-item-from-all-metadata");
+        itemMetadata2.classList.add("crab-item-from-all-items-metadata");
         itemMetadata2.textContent = makeMetadataString(item, itemIdx, annotatedDataset.length);
         itemButton.appendChild(itemMetadata2);
       });
@@ -386,7 +386,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
               if (!trial.multi_labels && rapidMode && curIdx < annotatedDataset.length - 1) {
                 setTimeout(() => {
                   curIdx++;
-                  updateUi();
+                  updateGui();
                 }, 50);
               }
             }
@@ -412,7 +412,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
         }
       });
       const progressContainer = document.createElement("div");
-      progressContainer.id = "jspsych-annotation-tool-progress-container";
+      progressContainer.id = "crab-progress-container";
       toolbar.appendChild(progressContainer);
       const progressBar = document.createElement("progress");
       progressBar.max = annotatedDataset.length;
@@ -443,7 +443,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
       prevButton.addEventListener("click", () => {
         if (curIdx > 0) {
           curIdx--;
-          updateUi();
+          updateGui();
         }
       });
       toolbarR.appendChild(prevButton);
@@ -454,7 +454,7 @@ var jsPsychAnnotationTool = (function (jspsych) {
       nextButton.addEventListener("click", () => {
         if (curIdx < annotatedDataset.length - 1) {
           curIdx++;
-          updateUi();
+          updateGui();
         }
       });
       toolbarR.appendChild(nextButton);
@@ -567,18 +567,16 @@ var jsPsychAnnotationTool = (function (jspsych) {
           console.error(error);
           saveAndContinue.disabled = false;
           saveAndEnd.disabled = false;
-          alert(
-            "Failed to save annotations to GitHub. Check your input. Check console for details."
-          );
+          alert("Failed to save annotations to GitHub. Check your input. Check console for details.");
         }
       }
       const labelsContainer = document.createElement("div");
-      labelsContainer.id = "jspsych-annotation-tool-labels-container";
+      labelsContainer.id = "crab-labels-container";
       display_element.appendChild(labelsContainer);
       const labelButtons = [];
       trial.labels.forEach((label, labelIdx) => {
         const labelButton = document.createElement("button");
-        labelButton.className = "jspsych-annotation-tool-label-button";
+        labelButton.className = "crab-label-button";
         labelButton.textContent = label;
         labelButton.addEventListener("click", () => {
           const item = annotatedDataset[curIdx];
@@ -603,21 +601,21 @@ var jsPsychAnnotationTool = (function (jspsych) {
               item.label = labelIdx;
             }
           }
-          updateUi();
+          updateGui();
         });
         labelButtons.push(labelButton);
         labelsContainer.appendChild(labelButton);
       });
       const itemContainer = document.createElement("div");
-      itemContainer.id = "jspsych-annotation-tool-item-container";
+      itemContainer.id = "crab-item-container";
       display_element.appendChild(itemContainer);
       const itemText = document.createElement("p");
-      itemText.id = "jspsych-annotation-tool-item";
+      itemText.id = "crab-item";
       itemContainer.appendChild(itemText);
       const itemMetadata = document.createElement("p");
-      itemMetadata.id = "jspsych-annotation-tool-metadata";
+      itemMetadata.id = "crab-metadata";
       itemContainer.appendChild(itemMetadata);
-      function updateUi() {
+      function updateGui() {
         const item = annotatedDataset[curIdx];
         itemText.textContent = item.text;
         itemMetadata.textContent = makeMetadataString(item, curIdx, annotatedDataset.length);
@@ -646,12 +644,12 @@ var jsPsychAnnotationTool = (function (jspsych) {
         localStorage.setItem(LOCAL_STORAGE_PREFIX, JSON.stringify(annotatedDataset));
         localStorage.setItem(LOCAL_STORAGE_PREFIX + "Index", String(curIdx));
       }
-      updateUi();
+      updateGui();
       startKeyboardShortcuts();
     }
   }
 
-  return AnnotationToolPlugin;
+  return CrabPlugin;
 
 })(jsPsychModule);
 //# sourceMappingURL=index.browser.js.map
