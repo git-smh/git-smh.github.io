@@ -15,21 +15,37 @@
     const trial = {
       type: jsPsychCrab,
       dataset: [
-        {"id": 0, "text": "This is a demo of CRAB."},
-        {"id": 1, "text": "This demo of CRAB is in single-label mode. Rapid mode is available. It is not available in multi-label mode."},
-        {"id": 2, "text": "This item already came with a label assigned.", "label": 0},
-        {"id": 3, "text": "Lorem ipsum dolor sit amet, consectetuer adipiscing elit."},
-        {"id": 4, "text": "Aenean commodo ligula eget dolor. Aenean massa."},
-        {"id": 5, "text": "Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus."},
-        {"id": 6, "text": "Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim."},
-        {"id": 7, "text": "Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo."},
-        {"id": 8, "text": "Nullam dictum felis eu pede mollis pretium."},
-        {"id": 9, "text": "Integer tincidunt."},
-        {"id": 10, "text": "Cras dapibus."},
-        {"id": 11, "text": "Vivamus elementum semper nisi."},
+        {"id": 0, "text": "Oh, fantastic! Another software update right before my deadline. Just what I needed."},
+        {"id": 1, "text": "just finished a 10k run wow feeling great"},
+        {"id": 2, "text": "Looking forward to the concert this weekend.", "label": 0},
+        {"id": 3, "text": "90 min delay, i love deutsche bahn :)"},
+        {"id": 4, "text": "Don't forget your umbrella."},
+        {"id": 5, "text": "guys i dont know how it works"},
+        {"id": 6, "text": "yeah, because waking up at 5am is exactly how I wanted to spend my weekend."},
+        {"id": 7, "text": "The weather is amazing, wanna have brunch on the balcony?"},
+        {"id": 8, "text": "Of course I love Mondays and my boss who always makes fun of me! Haha, of course I love my job."},
+        {"id": 9, "text": "I just love it when my phone dies mid-call. Best day ever! :D"},
+        {"id": 10, "text": "Nah he is ugly as heck"},
+        {"id": 11, "text": "Does anybody want to go to the park together?"},
       ],
       labels: ["not ironic", "ironic"],
-      guidelines: "Please read and adhere to these guidelines:<ol><li>They can be styled with HTML.</li><li>Aenean vulputate eleifend tellus.</li><li>Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim.</li></ol>",
+      guidelines: `Please read and adhere to these guidelines:<br>
+      <ol>
+        <li>
+          <b>Main Label:</b> decide if the text is <b>ironic</b> or <b>not ironic</b>.
+          <ul>
+            <li><b>ironic:</b> the text says one thing but really means the opposite, or uses sarcasm.</li>
+            <li><b>not ironic:</b> the text is straightforward, literal, or sincere.</li>
+          </ul>
+        </li>
+        <li>
+          <b>Context:</b> donsider the tone, word choice, and context.
+          <ul>
+            <li>a joke or exaggeration might be <b>ironic</b>, even if it seems positive.</li>
+            <li>literal complaints or factual statements are usually <b>not ironic</b>.</li>
+          </ul>
+        </li>
+      </ol>`,
       owner: "git-smh",
       repo: "git-smh.github.io",
     };
